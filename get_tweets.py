@@ -37,7 +37,7 @@ def handle_request(response):
 _http_client = tornado.httpclient.AsyncHTTPClient()
 
 def make_request():
-	parameters = [ ('q', '#facebook'), ('rpp',100), ('include_entities', 'true'),
+	parameters = [ ('q', '#facebook'), ('rpp',100), ('include_entities', 'true'), ('lang', 'en'),
 			   ('since_id', since_id) ]
 	query = urllib.urlencode(parameters)
 	print query

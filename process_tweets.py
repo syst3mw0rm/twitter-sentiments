@@ -4,7 +4,10 @@ import urllib
 import json
 import pika
 import sys
+import _mysql
+import MySQLdb
 from django.utils.encoding import smart_str
+
 
 textProcessingUrl = "http://text-processing.com/api/sentiment/"
 
@@ -14,10 +17,24 @@ channel = connection.channel()
 
 channel.queue_declare(queue='tweets')
 
-def handle_request(response):
-	print response.body
-	print response.headers
-	#print "got response"
+conn = MySQLdb.connect('localhost', 'root', 'rootroot', 'twitter')
+
+class Handler():
+	def __init__(self, tweet, query):
+		self.tweet = tweet
+		self.cur = conn.cursor()
+		self.query = smart_str(query)
+
+	def handle_request(self, response):
+		#print response.body
+		response_json = json.loads(response.body)
+		#print response.headers
+		#print self.tweet["text"]
+		#print "got response"
+		self.cur.execute("""INSERT INTO sentiments (id, query, tweet, pos, neg, neutral, label) values ( '%s', '%s', '%s' ,%s, %s, %s, '%s')""" % (self.tweet["id"], self.query, self.tweet["text"], response_json["probability"]["pos"], response_json["probability"]["neg"], response_json["probability"]["neutral"], response_json["label"] ));
+
+
+
 
 _http_client = tornado.httpclient.AsyncHTTPClient()
 
@@ -25,20 +42,22 @@ def sentiment_analysis(ch, method, properties, json_body):
 	json_object = json.loads(json_body)
         tweets = json_object["results"]
 	headers = {'Content-Type'   : 'application/x-www-form-urlencoded'}
+	q = json_object["query"]
 	#print tweets
 	for tweet in tweets:
-		text = smart_str(tweet["text"])
-		parameters = {"text" : text}
+		tweet["text"] = smart_str(tweet["text"])
+		parameters = {"text" : tweet["text"] }
 		#print tweet["text"]
 		headers = {'Content-Type'   : 'application/x-www-form-urlencoded'}
+		obj = Handler(tweet, q)
 		query = urllib.urlencode(parameters)
 		#print query
 		req_obj = tornado.httpclient.HTTPRequest(textProcessingUrl, 
 							 method = 'POST',
 							 body = query,
 							 headers = headers)
-	
-		_http_client.fetch(req_obj, handle_request)
+		_http_client.fetch(req_obj, obj.handle_request)
+
 
 def consume_tweet():
 	channel.basic_consume(sentiment_analysis,
