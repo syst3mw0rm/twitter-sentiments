@@ -31,7 +31,7 @@ def handle_request(response):
         # Let's push it into rabbitmq queue - twitter-sentiments
         channel.basic_publish(exchange='tweets',
                       routing_key='',
-                      body=message)
+                      body=response.body)
 
 
 _http_client = tornado.httpclient.AsyncHTTPClient()
