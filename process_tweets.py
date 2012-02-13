@@ -1,16 +1,29 @@
-# --coding: utf-8 --
+#-*- coding: utf-8 -*-
 import tornado.ioloop
 import tornado.httpclient
 import urllib
 import json
 import pika
 import sys
-import _mysql
 import MySQLdb
+import logging
+import os
+
 from django.utils.encoding import smart_str
+from tornado.options import define, options
+
+define("config")
+define("port", type=int)
+define("mysql_hostname")
+define("mysql_user")
+define("mysql_password")
+define("mysql_database")
+define("textProcessingUrl")
 
 
-textProcessingUrl = "http://text-processing.com/api/sentiment/"
+path = os.path.join(os.path.dirname(__file__), "settings.py")
+tornado.options.parse_config_file(path)
+
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(
         host='localhost'))
@@ -18,7 +31,7 @@ channel = connection.channel()
 
 channel.queue_declare(queue='tweets')
 
-conn = MySQLdb.connect('localhost', 'root', 'rootroot', 'twitter')
+conn = MySQLdb.connect(options.mysql_hostname, options.mysql_user, options.mysql_password, options.mysql_database, charset = "utf8", use_unicode = True)
 
 class Handler():
 	def __init__(self, tweet, query):
@@ -29,10 +42,19 @@ class Handler():
 	def handle_request(self, response):
 		#print response.body
 		response_json = json.loads(response.body)
-		#print response.headers
-		#print self.tweet["text"]
+		#s = "Aa'mi Khan"
+		#s = s.replace("'", "\\\'")
+		#print s
+		text = self.tweet["text"].replace("'", "\\\'")
+		#sys.exit()
 		#print "got response"
-		self.cur.execute("""INSERT INTO sentiments (id, query, tweet, pos, neg, neutral, label) values ( '%s', '%s', '%s' ,%s, %s, %s, '%s')""" % (self.tweet["id"], self.query, self.tweet["text"], response_json["probability"]["pos"], response_json["probability"]["neg"], response_json["probability"]["neutral"], response_json["label"] ));
+		query = """INSERT INTO sentiments (id, query, tweet, pos, neg, neutral, label) values (  '%s' , '%s', '%s' ,%s, %s, %s, '%s')""" % (self.tweet["id"], self.query, text, response_json["probability"]["pos"], response_json["probability"]["neg"], response_json["probability"]["neutral"], response_json["label"] );
+
+		try:
+			self.cur.execute(query)
+		except:
+			print "Error while inserting into database"
+			print query
 
 
 
@@ -49,11 +71,11 @@ def sentiment_analysis(ch, method, properties, json_body):
 		tweet["text"] = smart_str(tweet["text"])
 		parameters = {"text" : tweet["text"] }
 		#print tweet["text"]
-		headers = {'Content-Type'   : 'application/x-www-form-urlencoded'}
+		headers = {'Content-Type' : 'application/x-www-form-urlencoded'}
 		obj = Handler(tweet, q)
 		query = urllib.urlencode(parameters)
 		#print query
-		req_obj = tornado.httpclient.HTTPRequest(textProcessingUrl, 
+		req_obj = tornado.httpclient.HTTPRequest(options.textProcessingUrl, 
 							 method = 'POST',
 							 body = query,
 							 headers = headers)

@@ -1,0 +1,2 @@
+1. Web Interface to access the result
+2. Replace raw SQL queries by ORM wrapper classes
