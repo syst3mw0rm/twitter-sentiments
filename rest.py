@@ -23,7 +23,7 @@ conn = MySQLdb.connect(options.mysql_hostname, options.mysql_user, options.mysql
 cursor = conn.cursor(cursorclass=MySQLdb.cursors.DictCursor)
 
 app = Flask(__name__)
-#app.debug = True
+app.debug = True
 
 @app.route("/")
 def Welcome():
@@ -36,7 +36,10 @@ def Welcome():
 @app.route("/query/<query>/")
 def query(query, last_id=0, max_result=10, return_format=''):
     query = urllib.quote(query)
-    db_query = "SELECT * FROM sentiments where query = '%s' AND id > %d ORDER BY id ASC limit %d" % (query, last_id, max_result);
+    if last_id == 0:
+        db_query = "SELECT * FROM sentiments where query = '%s' ORDER BY id DESC limit %d" % (query, max_result);
+    else:
+        db_query = "SELECT * FROM sentiments where query = '%s' AND id < %d ORDER BY id DESC limit %d" % (query, last_id, max_result);
     print db_query
     try:
         cursor.execute(db_query)
