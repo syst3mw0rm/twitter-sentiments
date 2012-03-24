@@ -3,6 +3,17 @@
     margin: 0 auto 0 auto;
 }
 
+.neg {
+    background-color: #FFC7D1;
+}
+.pos {
+    background-color: #BDFFDE;
+}
+
+.neutral {
+    background-color: #EEF2E9;
+}
+
 .tweet {
     position: relative;
     min-height: 51px;
