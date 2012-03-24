@@ -1,6 +1,5 @@
 from flask import Flask
 from flask import render_template
-from flaskext.jsonify import jsonify
 import MySQLdb
 import logging
 import os
