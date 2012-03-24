@@ -1,0 +1,6 @@
+{% for tweet in tweets %}
+    <div id="{{ tweet.id }}" class="tweet {{ tweet.label }}">
+        <li>{{ tweet.tweet }}</li>
+    </div>
+{% endfor %}
+

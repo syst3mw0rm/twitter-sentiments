@@ -1,0 +1,10 @@
+.content-main {
+    width: 522px;
+}
+
+.tweet {
+    position: relative;
+    min-height: 51px;
+    padding: 9px 12px 9px;
+    border-bottom: 1px solid #E8E8E8;
+}
