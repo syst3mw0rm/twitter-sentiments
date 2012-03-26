@@ -6,4 +6,4 @@ How it works :
 3. Result is saved into mysql database.
 4. Flask app is used to display the tweets through web interface.
 
-
+You can check it out : aws.aamirkhan.co.in:8000/query/%23facebook
