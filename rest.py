@@ -54,7 +54,7 @@ def query(query, last_id=0, max_result=10, return_format=''):
         else:
             return render_template("show_sentiments.html", count = cursor.rowcount, query=query, tweets=tweets )
     except:
-        return "Error while inserting into database" + db_query
+        return "Error while querying the database" + db_query
 
 if __name__ == "__main__":
     app.run()
